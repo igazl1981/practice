@@ -1,0 +1,154 @@
+# Cursor Rules for Spring Boot + Kotlin + Vue.js + Quasar Project
+
+## Project Structure
+- Backend: Spring Boot with Kotlin
+- Frontend: Vue.js 3 with Quasar Framework
+- Follow modular architecture principles (Modulith pattern)
+
+## Kotlin & Spring Boot Guidelines
+
+### Code Style
+- Use Kotlin idiomatic code (data classes, extension functions, sealed classes)
+- Prefer immutable data structures
+- Use `val` over `var` when possible
+- Follow Kotlin naming conventions (camelCase for variables/functions, PascalCase for classes)
+- Use nullable types explicitly (`String?`, `Int?`)
+- Prefer expression bodies for single-expression functions
+
+### Spring Boot Best Practices
+- Use constructor injection
+- Use `@Service`, `@Repository`, `@Component` annotations appropriately
+- Prefer `@ConfigurationProperties` for externalized configuration
+- Use `@Transactional` at service layer, not repository layer
+- Return `ResponseEntity` only if necessary, otherwise use the related object type
+- Use DTOs for API communication, not entity classes directly, and create mappers in service layer if necessary
+- Implement proper exception handling with `@ControllerAdvice`
+- Use Spring Data JPA repositories with Kotlin coroutines when appropriate
+
+### API Design
+- Follow RESTful conventions
+- Use proper HTTP status codes
+- Version APIs when needed (`/api/v1/...`)
+- Document APIs with OpenAPI/Swagger annotations
+- Validate request bodies with `@Valid` and Bean Validation
+
+### Testing
+- Write unit tests with JUnit 5 and MockK
+- Write integration tests with `@SpringBootTest`
+- Use Testcontainers for database testing when needed
+
+## Vue.js & Quasar Guidelines
+
+### Code Style
+- Use Composition API (`<script setup>`) over Options API
+- Use TypeScript for type safety (`.vue` files with `<script setup lang="ts">`)
+- Follow Vue 3 best practices and conventions
+- Use Quasar components and utilities when available
+- Prefer composables for reusable logic
+
+### Component Structure
+- Use single-file components (`.vue`)
+- Organize components: template → script → style
+- Use `<script setup>` syntax
+- Define props with `defineProps<T>()` and emit with `defineEmits<T>()`
+- Use `ref()` for reactive primitives, `reactive()` for objects
+- Prefer `computed()` for derived state
+
+### Quasar Framework
+- Use Quasar components (`q-btn`, `q-input`, `q-card`, etc.) instead of custom HTML elements
+- Follow Quasar's design system and theming
+- Use Quasar plugins (`$q.notify`, `$q.dialog`, etc.) for user feedback
+- Leverage Quasar's layout system (`q-layout`, `q-page-container`, etc.)
+- Use Quasar directives (`v-close-popup`, `v-ripple`, etc.)
+
+### State Management
+- Use Pinia for state management (preferred over Vuex)
+- Create stores for complex state logic
+- Keep component state local when possible
+
+### Styling
+- Use Quasar's utility classes when appropriate
+- Prefer scoped styles (`<style scoped>`)
+- Use CSS variables for theming
+- Follow Quasar's spacing and sizing conventions
+
+### API Communication
+- Use Axios or Fetch API for HTTP requests
+- Create API service modules to encapsulate backend communication
+- Handle loading states and errors appropriately
+- Use async/await for asynchronous operations
+
+## General Guidelines
+
+### Code Quality
+- Write self-documenting code with clear variable and function names
+- Add comments only when necessary to explain "why", not "what"
+- Keep functions small and focused (single responsibility)
+- Avoid deep nesting (max 3-4 levels)
+- Use early returns to reduce nesting
+
+### Error Handling
+- Handle errors gracefully with user-friendly messages
+- Log errors appropriately (backend: SLF4J, frontend: console or error tracking)
+- Never expose sensitive information in error messages
+
+### Security
+- Validate and sanitize all user inputs
+- Use HTTPS in production
+- Implement proper authentication and authorization
+- Never commit secrets or credentials to version control
+- Use environment variables for configuration
+
+### Performance
+- Lazy load routes and components when appropriate
+- Optimize images and assets
+- Use pagination for large data sets
+- Implement proper caching strategies
+- Monitor and optimize database queries
+
+### Git & Version Control
+- Write clear, descriptive commit messages
+- Use conventional commits format when possible
+- Keep commits focused and atomic
+- Create meaningful branch names
+
+## File Organization
+
+### Backend Structure
+```
+src/main/kotlin/
+  ├── config/          # Configuration classes
+  ├── controller/      # REST controllers
+  ├── service/         # Business logic
+  ├── repository/      # Data access layer
+  ├── model/           # Entity classes
+  ├── dto/             # Data transfer objects
+  └── exception/       # Custom exceptions
+```
+
+### Frontend Structure
+```
+src/
+  ├── components/      # Reusable components
+  ├── pages/           # Page components
+  ├── layouts/         # Layout components
+  ├── stores/          # Pinia stores
+  ├── composables/     # Composable functions
+  ├── services/        # API services
+  ├── utils/           # Utility functions
+  └── assets/          # Static assets
+```
+
+## When Writing Code
+
+1. **Always** follow the established patterns in the codebase
+2. **Always** handle edge cases and error scenarios
+3. **Always** write code that is maintainable and readable
+4. **Always** consider performance implications
+5. **Always** ensure type safety (Kotlin null safety, TypeScript types)
+6. **Prefer** existing Quasar components over custom implementations
+7. **Prefer** Spring Boot conventions over custom solutions
+8. **Avoid** premature optimization
+9. **Avoid** code duplication (DRY principle)
+10. **Avoid** over-engineering solutions
+

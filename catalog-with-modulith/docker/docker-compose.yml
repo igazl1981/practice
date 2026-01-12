@@ -1,0 +1,35 @@
+version: '3.8'
+name: learn-modulith
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: learn-modulith-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-learn_modulith}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../database:/database:ro
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-learn_modulith}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - learn-modulith-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  learn-modulith-network:
+    driver: bridge
+

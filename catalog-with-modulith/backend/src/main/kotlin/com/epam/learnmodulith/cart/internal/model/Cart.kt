@@ -1,6 +1,7 @@
 package com.epam.learnmodulith.cart.internal.model
 
 import jakarta.persistence.*
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 enum class CartStatus {
@@ -19,6 +20,9 @@ data class Cart(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     val status: CartStatus = CartStatus.ACTIVE,
+
+    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    val totalPrice: BigDecimal = BigDecimal.ZERO,
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),

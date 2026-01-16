@@ -75,13 +75,15 @@ class CartController(
         val items = cartService.getCartItems(cart.id!!)
         val itemDtos = items.map { item ->
             val product = productApi.findById(item.productId)
+            // Use stored price from cart item (not current product price)
+            // This ensures submitted carts show the price at time of submission
             CartItemDto(
                 id = item.id!!,
                 productId = item.productId,
                 productName = product?.name,
-                productPrice = product?.price,
+                productPrice = item.price,  // Use stored price from cart item
                 quantity = item.quantity,
-                itemTotal = product?.price?.multiply(BigDecimal(item.quantity)),
+                itemTotal = item.price.multiply(BigDecimal(item.quantity)),  // Use stored price
                 createdAt = item.createdAt,
                 updatedAt = item.updatedAt
             )
@@ -91,6 +93,7 @@ class CartController(
             id = cart.id,
             status = cart.status.name,
             items = itemDtos,
+            totalPrice = cart.totalPrice,
             createdAt = cart.createdAt,
             updatedAt = cart.updatedAt
         )

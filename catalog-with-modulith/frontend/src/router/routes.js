@@ -4,7 +4,8 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { name: 'root', path: '', component: () => import('pages/IndexPage.vue') },
-      { name: 'category-detail', path: 'category/:parentId', component: () => import('pages/CategoryDetailPage.vue') }
+      { name: 'category-detail', path: 'category/:parentId', component: () => import('pages/CategoryDetailPage.vue') },
+      { name: 'cart', path: 'cart', component: () => import('pages/CartPage.vue') }
     ]
   },
 

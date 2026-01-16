@@ -15,6 +15,23 @@
           Learn Modulith
         </q-toolbar-title>
 
+        <q-space />
+
+        <q-btn
+          flat
+          dense
+          round
+          icon="shopping_cart"
+          aria-label="Cart"
+          :to="{ name: 'cart' }"
+        >
+          <q-badge
+            v-if="cartStore.getTotalItems > 0"
+            color="red"
+            floating
+            :label="cartStore.getTotalItems"
+          />
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -38,6 +55,21 @@
             <q-item-label caption>Main categories</q-item-label>
           </q-item-section>
         </q-item>
+
+        <q-item
+          clickable
+          v-ripple
+          tag="router-link"
+          :to="{ name: 'cart' }"
+        >
+          <q-item-section avatar>
+            <q-icon name="shopping_cart" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Cart</q-item-label>
+            <q-item-label caption>View cart</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
@@ -48,11 +80,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useCartStore } from 'stores/cart'
 
 const leftDrawerOpen = ref(false)
+const cartStore = useCartStore()
 
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+// Load cart on mount if cartId exists
+onMounted(() => {
+  if (cartStore.cartId) {
+    cartStore.refreshCart()
+  }
+})
 </script>

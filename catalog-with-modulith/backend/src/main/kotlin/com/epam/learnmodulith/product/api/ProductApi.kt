@@ -17,6 +17,13 @@ interface ProductApi {
     fun findById(id: Long): ProductInfo?
 
     /**
+     * Finds multiple products by their IDs.
+     * @param ids List of product IDs
+     * @return List of product information (may contain fewer items than requested if some IDs don't exist)
+     */
+    fun findByIds(ids: List<Long>): List<ProductInfo>
+
+    /**
      * Finds all products by category ID.
      * @param categoryId The category ID
      * @return List of products in the category

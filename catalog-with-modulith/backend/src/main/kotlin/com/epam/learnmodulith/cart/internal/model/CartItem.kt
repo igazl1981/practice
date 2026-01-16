@@ -1,6 +1,7 @@
 package com.epam.learnmodulith.cart.internal.model
 
 import jakarta.persistence.*
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
@@ -19,6 +20,9 @@ data class CartItem(
 
     @Column(name = "product_id", nullable = false)
     val productId: Long,  // Store ID reference, not JPA relationship
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    val price: BigDecimal,  // Store price at time of adding to cart
 
     @Column(nullable = false)
     val quantity: Int,

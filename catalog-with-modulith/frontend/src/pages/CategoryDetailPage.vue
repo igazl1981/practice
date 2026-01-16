@@ -121,6 +121,15 @@
               >
                 {{ product.shortDescription }}
               </div>
+              <div class="q-mt-md">
+                <q-btn
+                  color="primary"
+                  label="Add to Cart"
+                  icon="shopping_cart"
+                  @click="addToCart(product.id)"
+                  :loading="addingToCart === product.id"
+                />
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -153,15 +162,20 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from 'boot/axios'
+import { useCartStore } from 'stores/cart'
+import { useQuasar } from 'quasar'
 
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore()
+const $q = useQuasar()
 
 const category = ref(null)
 const subcategories = ref([])
 const products = ref([])
 const loading = ref(false)
 const error = ref(null)
+const addingToCart = ref(null)
 
 // Pagination state
 const currentPage = ref(1)
@@ -192,6 +206,29 @@ function formatPrice (price) {
 
 function navigateToCategory (categoryId) {
   router.push({ name: 'category-detail', params: { parentId: categoryId } })
+}
+
+async function addToCart (productId) {
+  addingToCart.value = productId
+  try {
+    await cartStore.addProduct(productId, 1)
+    $q.notify({
+      type: 'positive',
+      message: 'Product added to cart',
+      position: 'top',
+      timeout: 2000
+    })
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to add product to cart',
+      position: 'top',
+      timeout: 2000
+    })
+    console.error('Failed to add product to cart', err)
+  } finally {
+    addingToCart.value = null
+  }
 }
 
 async function loadCategoryData () {

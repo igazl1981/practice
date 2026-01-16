@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS carts (
     id BIGSERIAL PRIMARY KEY,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUBMITTED', 'CANCELLED')),
+    total_price DECIMAL(10, 2) NOT NULL DEFAULT 0 CHECK (total_price >= 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     id BIGSERIAL PRIMARY KEY,
     cart_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
     quantity INT NOT NULL CHECK (quantity > 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -40,14 +42,15 @@ CREATE OR REPLACE VIEW carts_with_items AS
 SELECT 
     c.id AS cart_id,
     c.status AS cart_status,
+    c.total_price AS cart_total_price,
     c.created_at AS cart_created_at,
     c.updated_at AS cart_updated_at,
     ci.id AS item_id,
     ci.product_id,
     p.name AS product_name,
-    p.price AS product_price,
+    ci.price AS item_price,
     ci.quantity,
-    (p.price * ci.quantity) AS item_total,
+    (ci.price * ci.quantity) AS item_total,
     ci.created_at AS item_created_at,
     ci.updated_at AS item_updated_at
 FROM carts c

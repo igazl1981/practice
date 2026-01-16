@@ -19,6 +19,10 @@ class ProductApiImpl(
         return productService.findById(id)?.toInfo()
     }
 
+    override fun findByIds(ids: List<Long>): List<ProductInfo> {
+        return productService.findByIds(ids).map { it.toInfo() }
+    }
+
     override fun findByCategoryId(categoryId: Long): List<ProductInfo> {
         return productService.findByCategoryId(categoryId).map { it.toInfo() }
     }

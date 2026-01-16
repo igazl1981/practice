@@ -3,19 +3,22 @@ package com.epam.learnmodulith.cart.internal.service
 import com.epam.learnmodulith.cart.internal.model.Cart
 import com.epam.learnmodulith.cart.internal.model.CartItem
 import com.epam.learnmodulith.cart.internal.model.CartStatus
-import com.epam.learnmodulith.cart.internal.repository.CartItemRepository
 import com.epam.learnmodulith.cart.internal.repository.CartRepository
-import com.epam.learnmodulith.product.api.ProductApi
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
+/**
+ * Service for managing carts.
+ * Orchestrates cart operations and delegates to specialized services.
+ */
 @Service
 @Transactional
 class CartService(
     private val cartRepository: CartRepository,
-    private val cartItemRepository: CartItemRepository,
-    private val productApi: ProductApi
+    private val cartItemService: CartItemService,
+    private val productValidator: ProductValidator,
+    private val cartPriceCalculator: CartPriceCalculator
 ) {
 
     /**
@@ -31,12 +34,16 @@ class CartService(
             getActiveCartOrThrow(cartId)
         }
 
+        // Batch fetch and validate products
+        val productMap = productValidator.fetchAndValidateProducts(productQuantities.map { it.productId }.distinct())
+
+        // Add or update cart items using the batch-fetched products
         for (productQuantity in productQuantities) {
-            validateProduct(productQuantity.productId)
-            addOrUpdateCartItem(cart, productQuantity.productId, productQuantity.quantity)
+            val product = productMap[productQuantity.productId]!!
+            cartItemService.addOrUpdateCartItem(cart, productQuantity.productId, productQuantity.quantity, product.price)
         }
 
-        return cartRepository.save(cart.copy(updatedAt = LocalDateTime.now()))
+        return cartPriceCalculator.updateCartTotal(cart)
     }
 
     /**
@@ -48,24 +55,23 @@ class CartService(
     fun changeProductQuantities(cartId: Long, productQuantities: List<ProductQuantity>): Cart {
         val cart = getActiveCartOrThrow(cartId)
 
+        // Batch fetch and validate products
+        val productMap = productValidator.fetchAndValidateProducts(productQuantities.map { it.productId }.distinct())
+
         for (productQuantity in productQuantities) {
-            validateProduct(productQuantity.productId)
-            val cartItem = cartItemRepository.findByCartIdAndProductId(cartId, productQuantity.productId)
+            val cartItem = cartItemService.findByCartIdAndProductId(cartId, productQuantity.productId)
                 ?: throw IllegalArgumentException("Product ${productQuantity.productId} not found in cart $cartId")
 
+            val product = productMap[productQuantity.productId]!!
+
             if (productQuantity.quantity <= 0) {
-                cartItemRepository.delete(cartItem)
+                cartItemService.deleteCartItem(cartItem)
             } else {
-                cartItemRepository.save(
-                    cartItem.copy(
-                        quantity = productQuantity.quantity,
-                        updatedAt = LocalDateTime.now()
-                    )
-                )
+                cartItemService.updateCartItemQuantity(cartItem, productQuantity.quantity, product.price)
             }
         }
 
-        return cartRepository.save(cart.copy(updatedAt = LocalDateTime.now()))
+        return cartPriceCalculator.updateCartTotal(cart)
     }
 
     /**
@@ -76,15 +82,8 @@ class CartService(
      */
     fun removeProducts(cartId: Long, productIds: List<Long>): Cart {
         val cart = getActiveCartOrThrow(cartId)
-
-        val cartItems = cartItemRepository.findByCartIdAndProductIds(cartId, productIds)
-        if (cartItems.isEmpty()) {
-            throw IllegalArgumentException("No products found in cart $cartId to remove")
-        }
-
-        cartItemRepository.deleteAll(cartItems)
-
-        return cartRepository.save(cart.copy(updatedAt = LocalDateTime.now()))
+        cartItemService.removeCartItems(cartId, productIds)
+        return cartPriceCalculator.updateCartTotal(cart)
     }
 
     /**
@@ -104,20 +103,35 @@ class CartService(
 
     /**
      * Submits a cart (changes status to SUBMITTED).
+     * Updates all item prices to current product prices before submission to ensure prices are frozen at submission time.
      * @param cartId The cart ID
      * @return The submitted cart
      */
     fun submitCart(cartId: Long): Cart {
         val cart = getActiveCartOrThrow(cartId)
-        
-        val items = cartItemRepository.findByCartId(cartId)
+
+        val items = cartItemService.findByCartId(cartId)
         if (items.isEmpty()) {
             throw IllegalStateException("Cannot submit an empty cart")
         }
 
+        // Batch fetch and validate all products
+        val productMap = productValidator.fetchAndValidateProducts(items.map { it.productId }.distinct())
+
+        // Update all item prices to current product prices before submission
+        // This ensures prices are frozen at the time of submission
+        for (item in items) {
+            val product = productMap[item.productId]!!
+            cartItemService.updateCartItemPrice(item, product.price)
+        }
+
+        // Recalculate total with updated prices
+        val totalPrice = cartPriceCalculator.calculateTotalPrice(cartId)
+
         return cartRepository.save(
             cart.copy(
                 status = CartStatus.SUBMITTED,
+                totalPrice = totalPrice,
                 updatedAt = LocalDateTime.now()
             )
         )
@@ -136,7 +150,7 @@ class CartService(
      */
     @Transactional(readOnly = true)
     fun getCartItems(cartId: Long): List<CartItem> {
-        return cartItemRepository.findByCartId(cartId)
+        return cartItemService.findByCartId(cartId)
     }
 
     private fun createNewCart(): Cart {
@@ -152,42 +166,6 @@ class CartService(
         }
 
         return cart
-    }
-
-    private fun validateProduct(productId: Long) {
-        val product = productApi.findById(productId)
-            ?: throw IllegalArgumentException("Product not found with id: $productId")
-        
-        if (product.status != "ACTIVE") {
-            throw IllegalArgumentException("Product $productId is not active (status: ${product.status})")
-        }
-    }
-
-    private fun addOrUpdateCartItem(cart: Cart, productId: Long, quantity: Int) {
-        if (quantity <= 0) {
-            throw IllegalArgumentException("Quantity must be greater than 0")
-        }
-
-        val existingItem = cartItemRepository.findByCartIdAndProductId(cart.id!!, productId)
-        
-        if (existingItem != null) {
-            // Update existing item by adding to current quantity
-            cartItemRepository.save(
-                existingItem.copy(
-                    quantity = existingItem.quantity + quantity,
-                    updatedAt = LocalDateTime.now()
-                )
-            )
-        } else {
-            // Create new item
-            cartItemRepository.save(
-                CartItem(
-                    cart = cart,
-                    productId = productId,
-                    quantity = quantity
-                )
-            )
-        }
     }
 }
 

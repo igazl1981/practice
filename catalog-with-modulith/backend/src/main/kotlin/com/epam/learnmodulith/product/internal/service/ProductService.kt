@@ -18,6 +18,10 @@ class ProductService(
         return productRepository.findById(id).orElse(null)
     }
 
+    fun findByIds(ids: List<Long>): List<Product> {
+        return productRepository.findAllById(ids)
+    }
+
     fun findByCategoryId(categoryId: Long): List<Product> {
         return productRepository.findByCategoryId(categoryId)
     }

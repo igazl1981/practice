@@ -23,7 +23,6 @@ interface ProductRepository : JpaRepository<Product, Long> {
     @Query("""
         SELECT p FROM Product p 
         WHERE p.categoryId IN :categoryIds
-        ORDER BY p.name
     """)
     fun findAllByCategoryIds(@Param("categoryIds") categoryIds: List<Long>, pageable: Pageable): Page<Product>
 }

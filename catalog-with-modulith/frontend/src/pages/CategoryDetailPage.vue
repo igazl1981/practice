@@ -27,7 +27,7 @@
     </div>
 
     <!-- Subcategories Section -->
-    <div v-if="subcategories.length > 0" class="q-mb-xl">
+    <div v-if="subcategories.length > 0" class="q-mb-lg">
       <div class="row q-col-gutter-md">
         <div
           v-for="subcategory in subcategories"
@@ -95,7 +95,7 @@
         <div
           v-for="product in products"
           :key="product.id"
-          class="col-12 col-sm-6 col-md-4 col-lg-3"
+          class="col-12 col-sm-6 col-md-4 col-lg-3 product-card-wrapper"
         >
           <q-card class="product-card" flat bordered>
             <div class="product-image flex flex-center">
@@ -311,7 +311,15 @@ watch(() => route.params.parentId, () => {
 </script>
 
 <style scoped>
+.product-card-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
 .product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
 }
@@ -325,11 +333,18 @@ watch(() => route.params.parentId, () => {
   height: 200px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .product-image-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.product-card :deep(.q-card__section) {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 </style>

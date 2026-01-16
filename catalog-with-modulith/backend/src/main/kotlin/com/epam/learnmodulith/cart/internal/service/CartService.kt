@@ -4,7 +4,6 @@ import com.epam.learnmodulith.cart.internal.model.Cart
 import com.epam.learnmodulith.cart.internal.model.CartItem
 import com.epam.learnmodulith.cart.internal.model.CartStatus
 import com.epam.learnmodulith.cart.internal.repository.CartRepository
-import com.epam.learnmodulith.product.api.ProductInfo
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime

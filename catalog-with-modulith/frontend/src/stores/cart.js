@@ -118,12 +118,37 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  // Get total items count (sum of all quantities)
+  // Cancel cart
+  async function cancelCart() {
+    if (!cartId.value) {
+      throw new Error('No cart available')
+    }
+
+    loading.value = true
+    try {
+      await api.post(`/carts/${cartId.value}/cancel`)
+      // Clear cartId from localStorage and reset cart state
+      saveCartId(null)
+      cart.value = null
+    } catch (error) {
+      console.error('Failed to cancel cart', error)
+      // Clear state even on error if cart doesn't exist
+      if (error.response?.status === 404) {
+        saveCartId(null)
+        cart.value = null
+      }
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Get distinct items count (number of different products in cart)
   const getTotalItems = computed(() => {
     if (!cart.value || !cart.value.items || cart.value.items.length === 0) {
       return 0
     }
-    return cart.value.items.reduce((sum, item) => sum + item.quantity, 0)
+    return cart.value.items.length
   })
 
   // Get total price from backend
@@ -142,6 +167,7 @@ export const useCartStore = defineStore('cart', () => {
     refreshCart,
     updateQuantity,
     removeProduct,
+    cancelCart,
     getTotalItems,
     getTotalPrice,
     saveCartId

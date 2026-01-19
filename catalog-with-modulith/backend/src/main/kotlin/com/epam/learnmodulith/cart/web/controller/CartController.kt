@@ -50,10 +50,9 @@ class CartController(
     }
 
     @PostMapping("/{cartId}/cancel")
-    fun cancelCart(@PathVariable cartId: Long): ResponseEntity<CartDto> {
-        val cart = cartService.cancelCart(cartId)
-        val cartDto = toCartDto(cart)
-        return ResponseEntity.ok(cartDto)
+    fun cancelCart(@PathVariable cartId: Long): ResponseEntity<Void> {
+        cartService.cancelCart(cartId)
+        return ResponseEntity.noContent().build()
     }
 
     @PostMapping("/{cartId}/submit")

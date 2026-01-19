@@ -31,6 +31,7 @@
         flat
         class="q-mb-lg"
         :hide-pagination="true"
+        :rows-per-page-options="[0]"
       >
         <template v-slot:body-cell-name="props">
           <q-td :props="props">
@@ -79,7 +80,14 @@
       </q-table>
 
       <!-- Total Section -->
-      <div class="row justify-end q-mt-md">
+      <div class="row justify-between items-center q-mt-md">
+        <div>
+          <q-btn
+            color="negative"
+            label="Cancel Cart"
+            @click="handleCancelCart"
+          />
+        </div>
         <div class="text-h6">
           Total: ${{ formatPrice(cart.totalPrice) }}
         </div>
@@ -208,6 +216,40 @@ async function loadCart() {
   } finally {
     loading.value = false
   }
+}
+
+async function handleCancelCart() {
+  // Check if Dialog plugin is available
+  if (!$q.dialog) {
+    console.error('Dialog plugin is not available')
+    return
+  }
+
+  $q.dialog({
+    title: 'Cancel Cart',
+    message: 'Are you sure you want to cancel this cart? This action cannot be undone.',
+    cancel: true,
+    persistent: true
+  }).onOk(async () => {
+    try {
+      loading.value = true
+      error.value = null
+      await cartStore.cancelCart()
+      // Refresh the page after successful cancellation
+      window.location.reload()
+    } catch (err) {
+      error.value = 'Failed to cancel cart. Please try again.'
+      console.error('Failed to cancel cart', err)
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to cancel cart. Please try again.',
+        position: 'top',
+        timeout: 3000
+      })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 onMounted(loadCart)

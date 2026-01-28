@@ -143,6 +143,31 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  // Submit cart
+  async function submitCart() {
+    if (!cartId.value) {
+      throw new Error('No cart available')
+    }
+
+    loading.value = true
+    try {
+      await api.post(`/carts/${cartId.value}/submit`)
+      // Clear cartId from localStorage and reset cart state
+      saveCartId(null)
+      cart.value = null
+    } catch (error) {
+      console.error('Failed to submit cart', error)
+      // Clear state even on error if cart doesn't exist
+      if (error.response?.status === 404) {
+        saveCartId(null)
+        cart.value = null
+      }
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Get distinct items count (number of different products in cart)
   const getTotalItems = computed(() => {
     if (!cart.value || !cart.value.items || cart.value.items.length === 0) {
@@ -168,6 +193,7 @@ export const useCartStore = defineStore('cart', () => {
     updateQuantity,
     removeProduct,
     cancelCart,
+    submitCart,
     getTotalItems,
     getTotalPrice,
     saveCartId

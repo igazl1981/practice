@@ -63,3 +63,42 @@ Backend changes
 * The cart items should store the price of the product so whenever the price is changed in the future the submitted carts are not affected
 * Whenever the product is added/changed and before the cart is submitted the item prices are updated and the cart total also updated.
 * If it's better create a getByIds method on the ProductApi so it returns multiple products with 1 query and the cart can use it.
+
+Cart Cancellation
+---
+
+Cart Page contains a RED cancel button.
+* it's under the table of the products
+* left side in the same line with the total
+* when clicked a confirmation pops up
+* on confirm it calls the backend cancel endpoint 
+* then the page is refreshed.
+
+The backend should set the cart status to cancelled and the endpoint returns 204 because we don't need the cart anymore.
+
+Use QDialog for notifications but don't forget to check if the plugin is enabled.
+
+Cart submission
+---
+
+Cart Page has a submit button
+* it's under the table of the products
+* on the right side of the Total
+* When clicked, it's calling the backend's submit endpoint
+* the page is refreshed and the car is cleared
+
+The backend saves the cart status to submitted and returns the finalized cart entity
+
+Use QDialog for notification of the submission and don't forget to check if the plugin is enabled
+
+Backend changes:
+* On successful cart submission a Spring Modulith event is generated 
+* The event contains basic information: product IDs and quantity
+* The event is read in the product module
+* The product stores the current stock instead of sold_amount
+* The product module updates the products from the event and deducts the amount from the stock
+* Update the product database structure if necessary
+* Update the classes if necessary
+
+* The product module generates and event when the stock goes under 0
+

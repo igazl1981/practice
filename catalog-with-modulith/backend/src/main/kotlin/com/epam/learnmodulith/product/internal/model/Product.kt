@@ -33,6 +33,9 @@ data class Product(
     @Column(name = "category_id", nullable = false)
     val categoryId: Long,  // Store ID reference, not JPA relationship
 
+    @Column(name = "stock", nullable = false)
+    val stock: Int = 0,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 

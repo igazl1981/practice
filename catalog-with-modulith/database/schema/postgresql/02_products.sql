@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS products (
     price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE', 'DISCONTINUED')),
     category_id BIGINT NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
@@ -29,6 +30,7 @@ SELECT
     p.price,
     p.status,
     p.category_id,
+    p.stock,
     c.name AS category_name,
     c.path AS category_path,
     c.level AS category_level,

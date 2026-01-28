@@ -88,8 +88,15 @@
             @click="handleCancelCart"
           />
         </div>
-        <div class="text-h6">
-          Total: ${{ formatPrice(cart.totalPrice) }}
+        <div class="row items-center q-gutter-md">
+          <div class="text-h6">
+            Total: ${{ formatPrice(cart.totalPrice) }}
+          </div>
+          <q-btn
+            color="primary"
+            label="Submit Cart"
+            @click="handleSubmitCart"
+          />
         </div>
       </div>
     </div>
@@ -250,6 +257,42 @@ async function handleCancelCart() {
       loading.value = false
     }
   })
+}
+
+async function handleSubmitCart() {
+  // Check if Dialog plugin is available
+  if (!$q.dialog) {
+    console.error('Dialog plugin is not available')
+    return
+  }
+
+  try {
+    loading.value = true
+    error.value = null
+    await cartStore.submitCart()
+    
+    // Show success notification using QDialog
+    $q.dialog({
+      title: 'Cart Submitted',
+      message: 'Your cart has been successfully submitted!',
+      ok: true,
+      persistent: false
+    }).onOk(() => {
+      // Refresh the page after successful submission
+      window.location.reload()
+    })
+  } catch (err) {
+    error.value = 'Failed to submit cart. Please try again.'
+    console.error('Failed to submit cart', err)
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to submit cart. Please try again.',
+      position: 'top',
+      timeout: 3000
+    })
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(loadCart)

@@ -1,9 +1,11 @@
 package com.epam.learnmodulith.cart.internal.service
 
+import com.epam.learnmodulith.cart.api.CartSubmittedEvent
 import com.epam.learnmodulith.cart.internal.model.Cart
 import com.epam.learnmodulith.cart.internal.model.CartItem
 import com.epam.learnmodulith.cart.internal.model.CartStatus
 import com.epam.learnmodulith.cart.internal.repository.CartRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -18,7 +20,8 @@ class CartService(
     private val cartRepository: CartRepository,
     private val cartItemService: CartItemService,
     private val productValidator: ProductValidator,
-    private val cartPriceCalculator: CartPriceCalculator
+    private val cartPriceCalculator: CartPriceCalculator,
+    private val eventPublisher: ApplicationEventPublisher
 ) {
 
     /**
@@ -128,13 +131,24 @@ class CartService(
         // Recalculate total with updated prices
         val totalPrice = cartPriceCalculator.calculateTotalPrice(cartId)
 
-        return cartRepository.save(
+        val submittedCart = cartRepository.save(
             cart.copy(
                 status = CartStatus.SUBMITTED,
                 totalPrice = totalPrice,
                 updatedAt = LocalDateTime.now()
             )
         )
+
+        // Publish event with product IDs and quantities
+        val productQuantities = items.associate { it.productId to it.quantity }
+        eventPublisher.publishEvent(
+            CartSubmittedEvent(
+                cartId = submittedCart.id!!,
+                productQuantities = productQuantities
+            )
+        )
+
+        return submittedCart
     }
 
     /**

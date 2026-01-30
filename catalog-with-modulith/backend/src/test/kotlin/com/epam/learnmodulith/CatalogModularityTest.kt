@@ -48,6 +48,22 @@ class CatalogModularityTest {
     }
 
     @Test
+    fun `verify stock module exists`() {
+        val stockModule = modules.getModuleByName("stock")
+        assert(stockModule.isPresent) { "Stock module should exist" }
+    }
+
+    @Test
+    fun `verify stock depends on product`() {
+        val stockModule = modules.getModuleByName("stock")
+        assert(stockModule.isPresent) { "Stock module should exist" }
+
+        val dependencies = stockModule.get().getDirectDependencies(modules)
+        val dependsOnProduct = dependencies.uniqueModules().toList().any { it.identifier.toString() == "product" }
+        assert(dependsOnProduct) { "Stock module should depend on Product module" }
+    }
+
+    @Test
     fun `verify product depends on category`() {
         val productModule = modules.getModuleByName("product")
         assert(productModule.isPresent) { "Product module should exist" }

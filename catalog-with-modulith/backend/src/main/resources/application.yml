@@ -20,6 +20,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+stock:
+  order:
+    extra-divisor: 3
+    output-path: ./stock-orders
+
 logging:
   level:
     root: INFO

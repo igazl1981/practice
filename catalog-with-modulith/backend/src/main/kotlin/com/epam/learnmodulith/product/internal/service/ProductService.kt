@@ -1,7 +1,7 @@
 package com.epam.learnmodulith.product.internal.service
 
 import com.epam.learnmodulith.category.api.CategoryApi
-import com.epam.learnmodulith.product.api.ProductStockLowEvent
+import com.epam.learnmodulith.product.api.ProductsStockLowEvent
 import com.epam.learnmodulith.product.internal.model.Product
 import com.epam.learnmodulith.product.internal.repository.ProductRepository
 import org.slf4j.LoggerFactory
@@ -58,17 +58,16 @@ class ProductService(
 
     /**
      * Deducts stock for products based on cart submission.
-     * Publishes ProductStockLowEvent when stock goes below 0.
+     * Publishes one ProductsStockLowEvent with all products that went below 0.
      * @param productQuantities Map of product ID to quantity to deduct
      */
     @Transactional
     fun deductStock(productQuantities: Map<Long, Int>) {
-        if (productQuantities.isEmpty()) {
-            return
-        }
+        if (productQuantities.isEmpty()) return
 
         val productIds = productQuantities.keys.toList()
         val productMap = productRepository.findAllById(productIds).associateBy { it.id!! }
+        val lowStockQuantities = mutableMapOf<Long, Int>()
 
         for ((productId, quantity) in productQuantities) {
             val product = productMap[productId]
@@ -76,26 +75,40 @@ class ProductService(
                 logger.warn("Product with ID $productId not found when deducting stock. Skipping.")
                 continue
             }
-
             val newStock = product.stock - quantity
-            val updatedProduct = product.copy(
+            productRepository.save(
+                product.copy(stock = newStock, updatedAt = LocalDateTime.now())
+            )
+            logger.debug("Deducted stock for product $productId: ${product.stock} -> $newStock")
+            if (newStock < 0) {
+                logger.warn("Product ${product.name} (ID: $productId) stock is now below 0: $newStock")
+                lowStockQuantities[productId] = -newStock
+            }
+        }
+        if (lowStockQuantities.isNotEmpty()) {
+            eventPublisher.publishEvent(ProductsStockLowEvent(productQuantities = lowStockQuantities))
+        }
+    }
+
+    /**
+     * Adds quantity to product stock (e.g. after restocking).
+     * Does not publish any events.
+     * @param productId The product ID
+     * @param quantity The quantity to add
+     * @throws NoSuchElementException if product is not found
+     */
+    @Transactional
+    fun addStock(productId: Long, quantity: Int) {
+        val product = productRepository.findById(productId)
+            .orElseThrow { NoSuchElementException("Product not found: $productId") }
+        val newStock = product.stock + quantity
+        productRepository.save(
+            product.copy(
                 stock = newStock,
                 updatedAt = LocalDateTime.now()
             )
-            productRepository.save(updatedProduct)
-            logger.debug("Deducted stock for product $productId: ${product.stock} -> $newStock")
-
-            // Publish low stock event if stock goes below 0
-            if (newStock < 0) {
-                logger.warn("Product ${product.name} (ID: $productId) stock is now below 0: $newStock")
-                eventPublisher.publishEvent(
-                    ProductStockLowEvent(
-                        productId = productId,
-                        currentStock = newStock
-                    )
-                )
-            }
-        }
+        )
+        logger.debug("Added stock for product $productId: ${product.stock} -> $newStock")
     }
 }
 

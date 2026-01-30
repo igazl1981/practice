@@ -44,6 +44,14 @@ interface ProductApi {
      * @return Page of products in the category and its subcategories
      */
     fun findByCategoryPath(categoryPath: String, pageable: Pageable): Page<ProductInfo>
+
+    /**
+     * Adds quantity to product stock (e.g. after restocking).
+     * @param productId The product ID
+     * @param quantity The quantity to add
+     * @throws NoSuchElementException if product is not found
+     */
+    fun addStock(productId: Long, quantity: Int)
 }
 
 /**

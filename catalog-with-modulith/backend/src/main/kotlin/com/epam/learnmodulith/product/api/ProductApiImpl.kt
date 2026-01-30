@@ -35,6 +35,10 @@ class ProductApiImpl(
         return productService.findByCategoryPath(categoryPath, pageable).map { it.toInfo() }
     }
 
+    override fun addStock(productId: Long, quantity: Int) {
+        productService.addStock(productId, quantity)
+    }
+
     private fun Product.toInfo(): ProductInfo {
         return ProductInfo(
             id = id!!,

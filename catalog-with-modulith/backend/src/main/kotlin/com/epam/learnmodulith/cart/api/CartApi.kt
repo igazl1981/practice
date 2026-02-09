@@ -1,5 +1,7 @@
 package com.epam.learnmodulith.cart.api
 
+import java.time.LocalDateTime
+
 /**
  * Public API for the Cart module.
  * Other modules should interact with carts through this interface.
@@ -26,8 +28,8 @@ interface CartApi {
 data class CartInfo(
     val id: Long,
     val status: String,
-    val createdAt: java.time.LocalDateTime,
-    val updatedAt: java.time.LocalDateTime
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 )
 
 /**
@@ -38,6 +40,6 @@ data class CartItemInfo(
     val cartId: Long,
     val productId: Long,
     val quantity: Int,
-    val createdAt: java.time.LocalDateTime,
-    val updatedAt: java.time.LocalDateTime
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 )

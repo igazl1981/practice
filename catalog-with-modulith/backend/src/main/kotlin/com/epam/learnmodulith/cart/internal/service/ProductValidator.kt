@@ -1,8 +1,8 @@
 package com.epam.learnmodulith.cart.internal.service
 
 import com.epam.learnmodulith.product.api.ProductApi
-import com.epam.learnmodulith.product.api.ProductInfo
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 
 /**
  * Validates products for cart operations.
@@ -20,7 +20,7 @@ class ProductValidator(
      * @return Map of productId to ProductInfo
      * @throws IllegalArgumentException if any product is not found or not active
      */
-    fun fetchAndValidateProducts(productIds: List<Long>): Map<Long, ProductInfo> {
+    fun fetchAndValidateProducts(productIds: List<Long>): Map<Long, Product> {
         val productMap = fetchProductsByIds(productIds)
         validateProducts(productIds, productMap)
         return productMap
@@ -31,8 +31,8 @@ class ProductValidator(
      * @param productIds List of product IDs to fetch
      * @return Map of productId to ProductInfo
      */
-    private fun fetchProductsByIds(productIds: List<Long>): Map<Long, ProductInfo> {
-        val products = productApi.findByIds(productIds)
+    private fun fetchProductsByIds(productIds: List<Long>): Map<Long, Product> {
+        val products = productApi.findByIds(productIds).map { Product(it.id, it.price, it.status) }
         return products.associateBy { it.id }
     }
 
@@ -44,7 +44,7 @@ class ProductValidator(
      */
     private fun validateProducts(
         productIds: List<Long>,
-        productMap: Map<Long, ProductInfo>
+        productMap: Map<Long, Product>
     ) {
         for (productId in productIds) {
             val product = productMap[productId]
@@ -54,4 +54,6 @@ class ProductValidator(
             }
         }
     }
+
+    data class Product(val id: Long, val price: BigDecimal, val status: String)
 }

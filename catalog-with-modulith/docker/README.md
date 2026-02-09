@@ -42,6 +42,22 @@ Edit `.env` file to customize:
 - `POSTGRES_USER` - Database user (default: `postgres`)
 - `POSTGRES_PASSWORD` - Database password (default: `postgres`)
 - `POSTGRES_PORT` - Host port mapping (default: `5432`)
+- `PROMETHEUS_PORT` - Prometheus UI port (default: `9090`)
+- `GRAFANA_PORT` - Grafana UI port (default: `3000`)
+- `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` - Grafana login (default: `admin` / `admin`)
+
+## Prometheus & Grafana (metrics)
+
+The stack includes Prometheus and Grafana for metrics when the backend runs **on the host** (e.g. `./mvnw spring-boot:run` from `backend/`).
+
+1. Start the backend locally (from `backend/`): `./mvnw spring-boot:run`
+2. Start Docker services: `docker-compose up -d`
+3. **Prometheus** scrapes the backend at `http://host.docker.internal:8080/actuator/prometheus` (scrape config in `prometheus.yml`)
+4. Open **Grafana**: http://localhost:3000 (login: `admin` / `admin`)
+5. In Grafana: **Connections → Data sources → Add data source → Prometheus**. Set URL to `http://prometheus:9090`, Save & test.
+6. Create dashboards or import existing ones (e.g. JVM or Spring Boot dashboards from Grafana.com).
+
+Prometheus UI: http://localhost:9090
 
 ## How It Works
 
@@ -136,11 +152,12 @@ docker-compose exec postgres psql -U postgres -d learn_modulith -c "SELECT pg_si
 
 ```
 docker/
-├── docker-compose.yml    # Docker Compose configuration
-├── init-db.sh           # Database initialization script (executable)
-├── reset-sequences.sql  # SQL script to reset sequences (used by init-db.sh)
-├── .gitignore          # Git ignore file (excludes .env)
-└── README.md           # This file
+├── docker-compose.yml    # Docker Compose configuration (postgres, prometheus, grafana)
+├── prometheus.yml        # Prometheus scrape config for catalog backend
+├── init-db.sh            # Database initialization script (executable)
+├── reset-sequences.sql   # SQL script to reset sequences (used by init-db.sh)
+├── .gitignore            # Git ignore file (excludes .env)
+└── README.md             # This file
 ```
 
 The initialization script mounts the `../database/` directory and executes:

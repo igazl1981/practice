@@ -20,6 +20,12 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
 stock:
   order:
     extra-divisor: 3
